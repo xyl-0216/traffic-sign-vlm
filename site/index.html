@@ -1,60 +1,57 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="基于 Qwen3-VL 的交通标志多模态异常识别与后训练研究：多模态指令数据、QLoRA 微调与可验证奖励设计。">
-  <meta name="theme-color" content="#101413">
-  <link rel="canonical" href="https://xyl-0216.github.io/traffic-sign-vlm/"><title>交通标志异常识别 · VLM Post-training</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="基于 Qwen3-VL 的交通标志多模态异常识别与后训练研究：多模态指令数据、QLoRA 微调与可验证奖励设计。" name="description"/>
+<meta content="#101413" name="theme-color"/>
+<link href="https://xyl-0216.github.io/traffic-sign-vlm/" rel="canonical"/><title>交通标志异常识别 · VLM Post-training</title>
+<link href="style.css" rel="stylesheet"/>
 </head>
 <body>
-<header class="site-header wrap"><a class="identity" href="#"><span class="logo" aria-hidden="true">↗</span><span>VLM <b>POST-TRAINING</b></span></a><nav aria-label="主导航"><a href="#method">训练方法</a><a href="#reward">奖励设计</a><a href="#examples">任务示例</a><a class="author" href="https://github.com/xyl-0216/traffic-sign-vlm" target="_blank" rel="noopener">GitHub 源码 ↗</a></nav></header>
+<header class="site-header wrap"><a class="identity" href="#"><span aria-hidden="true" class="logo">↗</span><span>VLM <b>POST-TRAINING</b></span></a><nav aria-label="主导航"><a href="#method">训练方法</a><a href="#reward">奖励设计</a><a href="#examples">任务示例</a><a class="author" href="https://github.com/xyl-0216/traffic-sign-vlm" rel="noopener" target="_blank">GitHub 源码 ↗</a></nav></header>
 <main>
 <section class="hero wrap">
- <div class="hero-copy"><div class="eyebrow"><span class="dot"></span> MULTIMODAL LEARNING / 多模态学习</div><h1>理解交通标志。<br><span>识别异常状态。</span></h1><p class="lead">基于 Qwen3-VL 的多模态异常识别与后训练研究。<br>从指令微调到可验证奖励，让视觉理解服务于具体的巡检任务。</p><div class="hero-actions"><a class="primary" href="#method">探索训练方法 <span>↓</span></a><a href="#examples" class="quiet-link">查看任务示例 ↗</a></div><div class="hero-meta"><span>Qwen3-VL</span><span>QLoRA / SFT</span><span>GRPO 研究</span></div></div>
- <div class="hero-visual" aria-label="交通标志视觉识别概念图，非模型检测结果">
-  <div class="visual-top"><span>VISUAL INSPECTION</span><span>概念示意</span></div>
-  <svg viewBox="0 0 500 430" role="img" aria-label="带有污损的限速标志与视觉区域示意">
-   <defs><radialGradient id="halo"><stop stop-color="#9ba88c" stop-opacity=".17"/><stop offset="1" stop-color="#9ba88c" stop-opacity="0"/></radialGradient><linearGradient id="pole" x2="1"><stop stop-color="#303b36"/><stop offset=".5" stop-color="#67736a"/><stop offset="1" stop-color="#28322d"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#a1b39b" stroke-opacity=".055"/></pattern></defs>
-   <rect width="500" height="430" fill="url(#grid)"/><circle cx="250" cy="210" r="210" fill="url(#halo)"/>
-   <ellipse cx="250" cy="393" rx="100" ry="11" fill="#000" opacity=".25"/><rect x="242" y="230" width="17" height="164" rx="3" fill="url(#pole)"/>
-   <g transform="rotate(-8 250 174)"><circle cx="250" cy="174" r="97" fill="#0b0f0c" opacity=".3" transform="translate(7 8)"/><circle cx="250" cy="174" r="94" fill="#bbc5b5"/><circle cx="250" cy="174" r="81" fill="#9e4c42"/><circle cx="250" cy="174" r="64" fill="#e7e8dc"/><text x="250" y="197" text-anchor="middle" fill="#24302a" font-family="Arial,sans-serif" font-size="70" font-weight="700">60</text><path d="M273 123l26 9 8 24-22 16-14-11-20 3-8-18 20-6z" fill="#716d57" opacity=".85"/><path d="M291 167l13 6-7 11-11-6z" fill="#716d57" opacity=".8"/></g>
-   <g fill="none" stroke="#bbcf9a" stroke-width="1.5"><path d="M136 106V72h34M330 72h34v34M364 246v34h-34M170 280h-34v-34"/><rect x="269" y="112" width="51" height="72" rx="2" stroke-dasharray="4 4"/><path d="M322 119l41-25h49"/></g><text x="367" y="85" fill="#c5d4b6" font-size="11" font-family="sans-serif">局部外观变化</text>
-   <g fill="#77877c" font-family="monospace" font-size="10"><text x="30" y="340">IMAGE → VISION TOKENS</text><text x="30" y="360">CONTEXT → STRUCTURED LABELS</text></g>
-   <circle class="signal" cx="444" cy="357" r="4" fill="#bbcf9a"/>
-  </svg>
-  <div class="visual-bottom"><span>视觉输入</span><i></i><span>语义理解</span><i></i><span>异常标签</span></div>
- </div>
+<div class="hero-copy"><div class="eyebrow"><span class="dot"></span> MULTIMODAL LEARNING / 多模态学习</div><h1>理解交通标志。<br/><span>识别异常状态。</span></h1><p class="lead">基于 Qwen3-VL 的多模态异常识别与后训练研究。<br/>从指令微调到可验证奖励，让视觉理解服务于具体的巡检任务。</p><div class="hero-actions"><a class="primary" href="#method">探索训练方法 <span>↓</span></a><a class="quiet-link" href="#examples">查看任务示例 ↗</a></div><div class="hero-meta"><span>Qwen3-VL</span><span>QLoRA / SFT</span><span>GRPO 研究</span></div></div>
+<div aria-label="交通标志视觉识别概念图，非模型检测结果" class="hero-visual">
+<div class="visual-top"><span>VISUAL INSPECTION</span><span>概念示意</span></div>
+<svg aria-label="带有污损的限速标志与视觉区域示意" role="img" viewBox="0 0 500 430">
+<defs><radialgradient id="halo"><stop stop-color="#9ba88c" stop-opacity=".17"></stop><stop offset="1" stop-color="#9ba88c" stop-opacity="0"></stop></radialgradient><lineargradient id="pole" x2="1"><stop stop-color="#303b36"></stop><stop offset=".5" stop-color="#67736a"></stop><stop offset="1" stop-color="#28322d"></stop></lineargradient><pattern height="32" id="grid" patternunits="userSpaceOnUse" width="32"><path d="M32 0H0V32" fill="none" stroke="#a1b39b" stroke-opacity=".055"></path></pattern></defs>
+<rect fill="url(#grid)" height="430" width="500"></rect><circle cx="250" cy="210" fill="url(#halo)" r="210"></circle>
+<ellipse cx="250" cy="393" fill="#000" opacity=".25" rx="100" ry="11"></ellipse><rect fill="url(#pole)" height="164" rx="3" width="17" x="242" y="230"></rect>
+<g transform="rotate(-8 250 174)"><circle cx="250" cy="174" fill="#0b0f0c" opacity=".3" r="97" transform="translate(7 8)"></circle><circle cx="250" cy="174" fill="#bbc5b5" r="94"></circle><circle cx="250" cy="174" fill="#9e4c42" r="81"></circle><circle cx="250" cy="174" fill="#e7e8dc" r="64"></circle><text fill="#24302a" font-family="Arial,sans-serif" font-size="70" font-weight="700" text-anchor="middle" x="250" y="197">60</text><path d="M273 123l26 9 8 24-22 16-14-11-20 3-8-18 20-6z" fill="#716d57" opacity=".85"></path><path d="M291 167l13 6-7 11-11-6z" fill="#716d57" opacity=".8"></path></g>
+<g fill="none" stroke="#bbcf9a" stroke-width="1.5"><path d="M136 106V72h34M330 72h34v34M364 246v34h-34M170 280h-34v-34"></path><rect height="72" rx="2" stroke-dasharray="4 4" width="51" x="269" y="112"></rect><path d="M322 119l41-25h49"></path></g><text fill="#c5d4b6" font-family="sans-serif" font-size="11" x="367" y="85">局部外观变化</text>
+<g fill="#77877c" font-family="monospace" font-size="10"><text x="30" y="340">IMAGE → VISION TOKENS</text><text x="30" y="360">CONTEXT → STRUCTURED LABELS</text></g>
+<circle class="signal" cx="444" cy="357" fill="#bbcf9a" r="4"></circle>
+</svg>
+<div class="visual-bottom"><span>视觉输入</span><i></i><span>语义理解</span><i></i><span>异常标签</span></div>
+</div>
 </section>
 <div class="discipline wrap"><span>01 <b>多模态指令数据</b></span><span>02 <b>参数高效微调</b></span><span>03 <b>可验证奖励设计</b></span></div>
-
 <section class="section wrap" id="method">
- <div class="section-head"><div><div class="eyebrow">01 / TRAINING RECIPE</div><h2>从视觉能力，<br><span>到任务适配。</span></h2></div><p>保留预训练模型的视觉语言能力，<br>用任务指令与轻量适配参数学习异常识别。</p></div>
- <div class="method-grid"><div class="method-nav" role="tablist" aria-label="训练方法">
-  <button id="tab-data" role="tab" aria-selected="true" aria-controls="method-panel" data-method="data"><span>01</span><div>指令数据<small>Data preparation</small></div><b>↗</b></button>
-  <button id="tab-sft" role="tab" aria-selected="false" aria-controls="method-panel" tabindex="-1" data-method="sft"><span>02</span><div>监督微调<small>QLoRA / SFT</small></div><b>↗</b></button>
-  <button id="tab-rl" role="tab" aria-selected="false" aria-controls="method-panel" tabindex="-1" data-method="rl"><span>03</span><div>后训练研究<small>Verifiable rewards / GRPO</small></div><b>↗</b></button>
- </div><article id="method-panel" role="tabpanel" aria-labelledby="tab-data" tabindex="0"></article></div>
- <div class="architecture"><div class="architecture-title"><span>QLoRA 微调路径</span><span>基座量化 · 低秩适配</span></div><div class="pipeline"><div><small>INPUT</small><strong>图像与任务指令</strong></div><span class="arrow">→</span><div><small>BASE MODEL</small><strong>Qwen3-VL / NF4</strong><em>量化基座参数冻结</em></div><span class="arrow">＋</span><div class="trainable"><small>TRAINABLE</small><strong>LoRA 适配参数</strong><em>Q / K / V / O 投影</em></div><span class="arrow">→</span><div><small>OUTPUT</small><strong>结构化异常标签</strong></div></div></div>
-</section>
-
-<section class="reward-section" id="reward"><div class="wrap section"><div class="section-head"><div><div class="eyebrow">02 / POST-TRAINING RESEARCH</div><h2>把任务要求，<br><span>变成奖励信号。</span></h2></div><p>围绕 GRPO 探索可验证奖励。<br>让语义正确性与输出约束共同参与评价。</p></div>
-<div class="reward-layout"><div class="reward-list" role="tablist" aria-label="奖励组成">
- <button role="tab" id="reward-correctness" aria-controls="reward-panel" aria-selected="true" data-reward="correctness"><span>01</span><strong>分类正确性</strong><em>识别对不对</em><b>↗</b></button>
- <button role="tab" id="reward-f1" aria-controls="reward-panel" aria-selected="false" tabindex="-1" data-reward="f1"><span>02</span><strong>多标签 F1</strong><em>漏检与误报</em><b>↗</b></button>
- <button role="tab" id="reward-format" aria-controls="reward-panel" aria-selected="false" tabindex="-1" data-reward="format"><span>03</span><strong>格式合法性</strong><em>结果能否解析</em><b>↗</b></button>
- <button role="tab" id="reward-consistency" aria-controls="reward-panel" aria-selected="false" tabindex="-1" data-reward="consistency"><span>04</span><strong>标签一致性</strong><em>表达是否自洽</em><b>↗</b></button>
-</div><article id="reward-panel" role="tabpanel" aria-labelledby="reward-correctness" tabindex="0"></article></div>
+<div class="section-head"><div><div class="eyebrow">01 / TRAINING RECIPE</div><h2>从视觉能力，<br/><span>到任务适配。</span></h2></div><p>保留预训练模型的视觉语言能力，<br/>用任务指令与轻量适配参数学习异常识别。</p></div>
+<div class="method-grid"><div aria-label="训练方法" class="method-nav" role="tablist">
+<button aria-controls="method-panel" aria-selected="true" data-method="data" id="tab-data" role="tab"><span>01</span><div>指令数据<small>Data preparation</small></div><b>↗</b></button>
+<button aria-controls="method-panel" aria-selected="false" data-method="sft" id="tab-sft" role="tab" tabindex="-1"><span>02</span><div>监督微调<small>QLoRA / SFT</small></div><b>↗</b></button>
+<button aria-controls="method-panel" aria-selected="false" data-method="rl" id="tab-rl" role="tab" tabindex="-1"><span>03</span><div>后训练研究<small>Verifiable rewards / GRPO</small></div><b>↗</b></button>
+</div><article aria-labelledby="tab-data" id="method-panel" role="tabpanel" tabindex="0"></article></div>
+<div class="architecture"><div class="architecture-title"><span>QLoRA 微调路径</span><span>基座量化 · 低秩适配</span></div><div class="pipeline"><div><small>INPUT</small><strong>图像与任务指令</strong></div><span class="arrow">→</span><div><small>BASE MODEL</small><strong>Qwen3-VL / NF4</strong><em>量化基座参数冻结</em></div><span class="arrow">＋</span><div class="trainable"><small>TRAINABLE</small><strong>LoRA 适配参数</strong><em>Q / K / V / O 投影</em></div><span class="arrow">→</span><div><small>OUTPUT</small><strong>结构化异常标签</strong></div></div></div>
+</section><section class="section wrap" id="quantization"><div class="section-head"><div><div class="eyebrow">PRECISION &amp; QUANTIZATION</div><h2>从训练精度，<br/><span>到推理量化。</span></h2></div><p>按使用阶段组织方法与对比方案，<br/>同时关注识别质量、显存和推理延迟。</p></div><div class="quant-grid"><article><small>01 / 精度基线</small><h3>BF16 / FP16</h3><p>作为浮点精度参考，观察数值稳定性与资源开销。浮点精度基线与低比特量化分开比较。</p></article><article><small>02 / 低比特加载</small><h3>INT8</h3><p>以 8-bit 权重加载为对比方向，分析精度与显存折中；额外适配参数与量化基座分别处理。</p></article><article><small>03 / 4-bit 微调</small><h3>NF4 / FP4</h3><p>当前微调路径采用 NF4 + QLoRA；FP4 作为表示方式的对比候选，并区分权重存储与计算精度。</p></article><article><small>04 / 推理部署候选</small><h3>AWQ / GPTQ</h3><p>面向训练后权重量化的扩展方案，结合校准样本、模型支持情况与推理内核验证部署可行性。</p></article></div><div class="quant-footer"><span>评测维度：识别 F1 · JSON 合法率 · 峰值显存 · 推理延迟</span><a href="https://huggingface.co/docs/transformers/quantization/overview" rel="noopener" target="_blank">量化方法参考 ↗</a></div><p class="subtle-note">方法与实验方案展示；新增量化配置的效果以实际训练和部署评测为准。</p></section>
+<section class="reward-section" id="reward"><div class="wrap section"><div class="section-head"><div><div class="eyebrow">02 / POST-TRAINING RESEARCH</div><h2>把任务要求，<br/><span>变成奖励信号。</span></h2></div><p>围绕 GRPO 探索可验证奖励。<br/>让语义正确性与输出约束共同参与评价。</p></div>
+<div class="reward-layout"><div aria-label="奖励组成" class="reward-list" role="tablist">
+<button aria-controls="reward-panel" aria-selected="true" data-reward="correctness" id="reward-correctness" role="tab"><span>01</span><strong>分类正确性</strong><em>识别对不对</em><b>↗</b></button>
+<button aria-controls="reward-panel" aria-selected="false" data-reward="f1" id="reward-f1" role="tab" tabindex="-1"><span>02</span><strong>多标签 F1</strong><em>漏检与误报</em><b>↗</b></button>
+<button aria-controls="reward-panel" aria-selected="false" data-reward="format" id="reward-format" role="tab" tabindex="-1"><span>03</span><strong>格式合法性</strong><em>结果能否解析</em><b>↗</b></button>
+<button aria-controls="reward-panel" aria-selected="false" data-reward="consistency" id="reward-consistency" role="tab" tabindex="-1"><span>04</span><strong>标签一致性</strong><em>表达是否自洽</em><b>↗</b></button>
+</div><article aria-labelledby="reward-correctness" id="reward-panel" role="tabpanel" tabindex="0"></article></div>
 <div class="rl-flow"><span>同一任务采样多组候选</span><b>→</b><span>规则与标签校验</span><b>→</b><span>组内相对奖励</span><b>→</b><span>策略更新</span></div><p class="subtle-note">后训练方案展示 · 奖励组合与权重通过后续实验验证。</p>
 </div></section>
-
 <section class="section wrap" id="evaluation"><div class="section-head"><div><div class="eyebrow">03 / EVALUATION DESIGN</div><h2>评估识别，<span>也评估可用性。</span></h2></div></div><div class="evaluation-grid"><article><span>RECOGNITION</span><h3>异常识别</h3><p>关注各类异常的 Precision、Recall 与多标签 F1，分别观察误报和漏检。</p></article><article><span>STRUCTURE</span><h3>输出可靠性</h3><p>检查 JSON 可解析率、标签合法性与字段一致性，验证输出能否被下游流程使用。</p></article><article><span>EFFICIENCY</span><h3>训练与推理资源</h3><p>以显存占用、可训练参数和推理耗时为评测维度，分析任务性能与资源开销。</p></article></div><div class="comparison"><span>实验对比设计</span><p>基座模型 <b>→</b> QLoRA / SFT <b>→</b> SFT + GRPO</p><small>保持测试集与解码配置一致，分析微调和奖励设计的独立贡献。</small></div></section>
-
-<section class="section wrap examples" id="examples"><div class="section-head"><div><div class="eyebrow">04 / TASK EXPLORER</div><h2>五类异常，<span>一个识别任务。</span></h2></div><p>点击标签，查看任务关注点与输出结构。<br>图像和 JSON 均为任务示意，不是模型实测结果。</p></div>
-<div class="example-tabs" role="tablist" aria-label="异常类型"><button id="example-stain" role="tab" aria-selected="true" aria-controls="example-panel" data-example="stain">污损</button><button id="example-deform" role="tab" aria-selected="false" tabindex="-1" aria-controls="example-panel" data-example="deform">变形</button><button id="example-age" role="tab" aria-selected="false" tabindex="-1" aria-controls="example-panel" data-example="age">老化</button><button id="example-break" role="tab" aria-selected="false" tabindex="-1" aria-controls="example-panel" data-example="break">破坏</button><button id="example-missing" role="tab" aria-selected="false" tabindex="-1" aria-controls="example-panel" data-example="missing">脱落</button></div>
-<div id="example-panel" class="example-panel" role="tabpanel" aria-labelledby="example-stain" tabindex="0"><div class="sign-canvas"><span class="canvas-label">任务示意 / ILLUSTRATION</span><svg id="example-art" viewBox="0 0 460 340" role="img" aria-label="交通标志污损示意"></svg></div><div class="example-copy"><span class="eyebrow" id="example-number">ANOMALY / 01</span><h3 id="example-title"></h3><p id="example-description"></p><div class="code-head"><span>结构化输出示例</span><span>JSON</span></div><pre><code id="example-json"></code></pre></div></div>
+<section class="section wrap examples" id="examples"><div class="section-head"><div><div class="eyebrow">04 / TASK EXPLORER</div><h2>五类异常，<span>一个识别任务。</span></h2></div><p>点击标签，查看任务关注点与输出结构。<br/>图像和 JSON 均为任务示意，不是模型实测结果。</p></div>
+<div aria-label="异常类型" class="example-tabs" role="tablist"><button aria-controls="example-panel" aria-selected="true" data-example="stain" id="example-stain" role="tab">污损</button><button aria-controls="example-panel" aria-selected="false" data-example="deform" id="example-deform" role="tab" tabindex="-1">变形</button><button aria-controls="example-panel" aria-selected="false" data-example="age" id="example-age" role="tab" tabindex="-1">老化</button><button aria-controls="example-panel" aria-selected="false" data-example="break" id="example-break" role="tab" tabindex="-1">破坏</button><button aria-controls="example-panel" aria-selected="false" data-example="missing" id="example-missing" role="tab" tabindex="-1">脱落</button></div>
+<div aria-labelledby="example-stain" class="example-panel" id="example-panel" role="tabpanel" tabindex="0"><div class="sign-canvas"><span class="canvas-label">任务示意 / ILLUSTRATION</span><svg aria-label="交通标志污损示意" id="example-art" role="img" viewBox="0 0 460 340"></svg></div><div class="example-copy"><span class="eyebrow" id="example-number">ANOMALY / 01</span><h3 id="example-title"></h3><p id="example-description"></p><div class="code-head"><span>结构化输出示例</span><span>JSON</span></div><pre><code id="example-json"></code></pre></div></div>
 </section>
-<section class="closing wrap"><div><div class="eyebrow">ALGORITHM → TRAINING → APPLICATION</div><h2>研究方法，走向可用的模型。</h2><p>薛语林 · 多模态学习与视觉语言理解</p></div><a class="primary" href="https://github.com/xyl-0216/traffic-sign-vlm" target="_blank" rel="noopener">查看项目仓库 <span>↗</span></a></section>
+<section class="closing wrap"><div><div class="eyebrow">ALGORITHM → TRAINING → APPLICATION</div><h2>研究方法，走向可用的模型。</h2><p>薛语林 · 多模态学习与视觉语言理解</p></div><a class="primary" href="https://github.com/xyl-0216/traffic-sign-vlm" rel="noopener" target="_blank">查看项目仓库 <span>↗</span></a></section>
 </main><footer class="wrap"><span>Qwen3-VL · Traffic Sign Anomaly Recognition</span><a href="https://xyl-0216.github.io/prism-research/">另一个项目：Prism Research ↗</a><span>© <span id="year">2026</span> 薛语林</span></footer>
 <script src="app.js"></script>
 </body></html>
